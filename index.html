@@ -1,9 +1,9 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>听风点唱排挡工具</title>
+<title>排挡小神兽</title>
 <style>
 :root{
   --bg:#f5f4f0;--surface:#ffffff;--surface2:#f9f8f6;
@@ -488,7 +488,7 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:18px 0;}
 
 <div class="header">
   <div class="header-logo">
-    🎵 <span id="room-name-display">听风点唱排挡</span>
+    🎵 <span id="room-name-display">排挡小神兽</span>
     <span class="badge-free" id="pro-badge">免费版</span>
   </div>
   <div class="sync-row">
@@ -565,7 +565,7 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:18px 0;}
     <div class="cal-grid" id="slots-grid"></div>
     <div class="act-row">
       <button class="btn" onclick="loadData()">🔄 刷新</button>
-      <button class="btn" onclick="exportSchedule()">📤 导出</button>
+      <button class="btn" onclick="exportSchedule()">🖼 导出图片</button>
       <button class="btn danger" id="reset-week-btn" style="display:none" onclick="resetAll()">🗑 清空存档</button>
     </div>
   </div>
@@ -1055,7 +1055,7 @@ let SLOTS=[...DEFAULT_SLOTS.map((s,i)=>({...s,id:i+1}))];
 let isSuperAdmin=false;
 let universalCodes=[];
 let songQueue=[]; // [{uid,singer,song,done,ts}]
-let members=[],bookings={},pending={},customHosts={},adminPwHash='',fans=[],weekHistory={},memberTasks={},bathroomStatus={},leaveRequests={},leaveConfig={limit:3,slotLimit:1},roomName='听风点唱排挡',mvpHistory=[],mvpConfig={title:'MVP'},songList=[],crowns=[],periodConfig={mode:'natural',startDate:'',label:''},revenueData=[],payConfig={price:'8.8',qrUrl:'',contact:''};
+let members=[],bookings={},pending={},customHosts={},adminPwHash='',fans=[],weekHistory={},memberTasks={},bathroomStatus={},leaveRequests={},leaveConfig={limit:3,slotLimit:1},roomName='排挡小神兽',mvpHistory=[],mvpConfig={title:'MVP'},songList=[],crowns=[],periodConfig={mode:'natural',startDate:'',label:''},revenueData=[],payConfig={price:'8.8',qrUrl:'',contact:''};
 // revenueData:[{uid,date,amount,note,category}]
 // periodConfig.mode: 'natural'=ISO week, 'custom'=manual start date
 // songList:[{uid,title,suggestFan,owner,status:'pending'|'learning'|'learned',ts}]
@@ -1588,8 +1588,8 @@ async function savePeriodConfig(){
 
 function updateRoomName(){
   const el=document.getElementById('room-name-display');
-  if(el) el.textContent=roomName||'听风点唱排挡';
-  document.title=(roomName||'听风点唱排挡')+' · 排挡工具';
+  if(el) el.textContent=roomName||'排挡小神兽';
+  document.title=(roomName||'排挡小神兽')+' · 排挡工具';
   const inp=document.getElementById('room-name-input');
   if(inp) inp.value=roomName||'';
 }
@@ -1618,14 +1618,20 @@ function limitBanner(msg){return `<div class="limit-banner"><span>🔒 ${msg}</s
 
 // ── Admin ──
 function applyProUI(){
-  // Tabs visible to all: schedule(0), book(1)
-  // Tabs visible when pro: fans(2), stats(3), songs(4)
-  // Tabs visible when admin+pro: mvp, review, mgmt
-  const proTabs=['fans','stats','songs'];
-  proTabs.forEach(t=>{
-    const el=document.querySelector(`.tab[onclick*="'${t}'"]`);
-    if(el) el.style.display=isPro?'':'none';
+  const proTabMap={'fans':'💝 粉丝','stats':'📊 统计','songs':'🎵 学歌','queue':'🎤 排歌'};
+  Object.entries(proTabMap).forEach(([t,label])=>{
+    const el=document.querySelector('.tab[onclick*=\'\'' +t+ '\'\'\']');
+    if(!el) return;
+    el.style.display='';
+    if(!isPro){el.style.opacity='0.5';el.textContent=label+' 🔒';}
+    else{el.style.opacity='';el.textContent=label;}
   });
+  const mvpBtn=document.getElementById('tab-mvp-btn');
+  if(mvpBtn){
+    mvpBtn.style.display='';
+    if(!isPro){mvpBtn.style.opacity='0.5';mvpBtn.textContent='🏆 MVP 🔒';}
+    else{mvpBtn.style.opacity='';mvpBtn.textContent='🏆 MVP';}
+  }
 }
 function applyAdminUI(){
   const rb=document.getElementById('tab-review-btn'),mb=document.getElementById('tab-mgmt-btn'),ab=document.getElementById('admin-btn'),rw=document.getElementById('reset-week-btn');
@@ -1685,7 +1691,7 @@ async function adminSetup(){
   const btn=document.querySelector('.primary-btn');btn.textContent='连接中…';btn.disabled=true;setSync('loading');
   try{
     const h=await hashPw(pw);
-    const initData={members:[],bookings:{},pending:{},customHosts:{},adminPwHash:h,fans:[],weekHistory:{},weekKey:CURRENT_WEEK,memberTasks:{},bathroomStatus:{},leaveRequests:{},leaveConfig:{limit:3,slotLimit:1},roomName:'听风点唱排挡',mvpHistory:[],mvpConfig:{title:'MVP'},songList:[],crowns:[],periodConfig:{mode:'natural',startDate:'',label:''},revenueData:[],payConfig:{price:'8.8',qrUrl:'',contact:'',autoCode:false,autoDesc:''},universalCodes:[],slotConfig:DEFAULT_SLOTS};
+    const initData={members:[],bookings:{},pending:{},customHosts:{},adminPwHash:h,fans:[],weekHistory:{},weekKey:CURRENT_WEEK,memberTasks:{},bathroomStatus:{},leaveRequests:{},leaveConfig:{limit:3,slotLimit:1},roomName:'排挡小神兽',mvpHistory:[],mvpConfig:{title:'MVP'},songList:[],crowns:[],periodConfig:{mode:'natural',startDate:'',label:''},revenueData:[],payConfig:{price:'8.8',qrUrl:'',contact:'',autoCode:false,autoDesc:''},universalCodes:[],slotConfig:DEFAULT_SLOTS};
     const res=await fetch(url+'/rest/v1/rooms',{method:'POST',
       headers:{'Content-Type':'application/json','apikey':anonKey,'Authorization':'Bearer '+anonKey,'Prefer':'return=representation'},
       body:JSON.stringify({data:initData})});
@@ -1693,7 +1699,7 @@ async function adminSetup(){
     const rows=await res.json();
     roomId=rows[0].id;sbUrl=url;sbKey=anonKey;
     localStorage.setItem('tf_roomid',roomId);localStorage.setItem('tf_sburl',sbUrl);localStorage.setItem('tf_sbkey',sbKey);
-    members=[];bookings={};pending={};customHosts={};adminPwHash=h;fans=[];weekHistory={};memberTasks={};bathroomStatus={};leaveRequests={};isAdmin=true;isSuperAdmin=true;roomName='听风点唱排挡';updateRoomName();
+    members=[];bookings={};pending={};customHosts={};adminPwHash=h;fans=[];weekHistory={};memberTasks={};bathroomStatus={};leaveRequests={};isAdmin=true;isSuperAdmin=true;roomName='排挡小神兽';updateRoomName();
     loadProState();renderShareBox();applyAdminUI();applyProUI();showMain();renderSlotConfig();showTab('schedule');render();
     toast('✅ 配置成功！请将下方专属链接发给所有主播');
   }catch(e){setSync('err');showSetupErr(e.message);}
@@ -1710,7 +1716,7 @@ async function loadData(){
     const rows=await res.json();
     if(!rows.length) throw new Error('房间数据不存在');
     const d=rows[0],r=d.data;
-    members=r.members||[];adminPwHash=r.adminPwHash||'';fans=r.fans||[];weekHistory=r.weekHistory||{};memberTasks=r.memberTasks||{};bathroomStatus=r.bathroomStatus||{};leaveRequests=r.leaveRequests||{};leaveConfig=r.leaveConfig||{limit:3,slotLimit:1};roomName=r.roomName||'听风点唱排挡';mvpHistory=r.mvpHistory||[];mvpConfig=r.mvpConfig||{title:'MVP'};songList=r.songList||[];crowns=Array.isArray(r.crowns)?r.crowns:[];periodConfig=r.periodConfig||{mode:'natural',startDate:'',label:''};revenueData=r.revenueData||[];payConfig=r.payConfig||{price:'8.8',qrUrl:'',contact:'',autoCode:false,autoDesc:''};universalCodes=r.universalCodes||[];songQueue=r.songQueue||[];updateRoomName();
+    members=r.members||[];adminPwHash=r.adminPwHash||'';fans=r.fans||[];weekHistory=r.weekHistory||{};memberTasks=r.memberTasks||{};bathroomStatus=r.bathroomStatus||{};leaveRequests=r.leaveRequests||{};leaveConfig=r.leaveConfig||{limit:3,slotLimit:1};roomName=r.roomName||'排挡小神兽';mvpHistory=r.mvpHistory||[];mvpConfig=r.mvpConfig||{title:'MVP'};songList=r.songList||[];crowns=Array.isArray(r.crowns)?r.crowns:[];periodConfig=r.periodConfig||{mode:'natural',startDate:'',label:''};revenueData=r.revenueData||[];payConfig=r.payConfig||{price:'8.8',qrUrl:'',contact:'',autoCode:false,autoDesc:''};universalCodes=r.universalCodes||[];songQueue=r.songQueue||[];updateRoomName();
     if(r.slotConfig&&r.slotConfig.length){rebuildSlots(r.slotConfig);slotCfgDraft=[...r.slotConfig];}
     loadProState();
     const storedWeek=r.weekKey||'';
@@ -1776,8 +1782,11 @@ function copyUrl(){const u=document.getElementById('share-url').textContent;navi
 
 // ── Tab ──
 function switchTab(tab){
+  // Pro tab clicked by free user -> open pay modal
+  const proTabs=['fans','stats','songs','queue','mvp'];
+  if(proTabs.includes(tab)&&!isPro){openPayModal();return;}
   if(tab==='review'&&!isAdmin){openModal('login-modal');return;}
-  if(tab==='mgmt'&&!isAdmin&&!isPro){openModal('login-modal');return;} // free+non-admin: still allow basic member mgmt
+  if(tab==='mgmt'&&!isAdmin&&!isPro){openModal('login-modal');return;}
   currentTab=tab;if(tab==='book'){selMember=null;selSlot=null;}
   showTab(tab);render();
 }
@@ -2259,12 +2268,121 @@ async function batchImport(){
 // ── Export ──
 function exportSchedule(){
   const date=new Date().toLocaleDateString('zh-CN');
-  let txt=`【听风点唱排挡表】${date}\n${'═'.repeat(36)}\n`;
-  SLOTS.forEach(s=>{const ns=bookings[s.id]||[],h=getHost(s.id);txt+=`\n${s.label}  ${slotTimeStr(s)}  (${ns.length}/${MAX})\n`;if(ns.length)ns.forEach(n=>{const ih=h&&h.name===n;txt+=`  ${ih?(h.custom?'[指定主持] ':'[主持]    '):'         '}${n}\n`;});else txt+='  （空档）\n';});
   const all=[...new Set(Object.values(bookings).flat())];
-  txt+=`\n${'═'.repeat(36)}\n共 ${all.length}/${members.length} 位成员参与排档`;
-  const blob=new Blob([txt],{type:'text/plain;charset=utf-8'}),a=document.createElement('a');
-  a.href=URL.createObjectURL(blob);a.download=`听风点唱排挡表_${date.replace(/\//g,'-')}.txt`;a.click();toast('📤 已导出');
+  const slots=SLOTS;
+  const rowH=72,headerH=90,footerH=50,padX=32,colW=560;
+  const H=headerH+slots.length*rowH+footerH;
+  const W=colW+padX*2;
+  const canvas=document.createElement('canvas');
+  const dpr=2;
+  canvas.width=W*dpr;canvas.height=H*dpr;
+  canvas.style.width=W+'px';canvas.style.height=H+'px';
+  const ctx=canvas.getContext('2d');
+  ctx.scale(dpr,dpr);
+
+  // Background
+  ctx.fillStyle='#f5f4f0';ctx.fillRect(0,0,W,H);
+
+  // Header card
+  const grad=ctx.createLinearGradient(padX,0,padX+colW,0);
+  grad.addColorStop(0,'#1a1a1a');grad.addColorStop(1,'#333');
+  ctx.fillStyle=grad;
+  roundRect(ctx,padX,16,colW,headerH-20,12);ctx.fill();
+
+  ctx.fillStyle='#fff';
+  ctx.font='bold 20px "PingFang SC","Microsoft YaHei",sans-serif';
+  ctx.textAlign='left';
+  ctx.fillText('🎵 '+(roomName||'点唱排挡表'),padX+20,50);
+  ctx.font='13px "PingFang SC","Microsoft YaHei",sans-serif';
+  ctx.fillStyle='rgba(255,255,255,0.6)';
+  ctx.fillText(date+'  共 '+all.length+'/'+members.length+' 位成员参与排档',padX+20,74);
+
+  // Slots
+  slots.forEach((s,i)=>{
+    const y=headerH+i*rowH;
+    const ns=bookings[s.id]||[];
+    const host=getHost(s.id);
+    const isNow=isNowInSlot(s);
+    const isFull=ns.length>=MAX;
+
+    // Card bg
+    ctx.fillStyle=isNow?'#f0fff4':isFull?'#fff5f5':'#ffffff';
+    roundRect(ctx,padX,y+4,colW,rowH-8,10);ctx.fill();
+    // Left accent bar
+    ctx.fillStyle=isNow?'#27ae60':isFull?'#c0392b':'#e8e5df';
+    roundRect(ctx,padX,y+4,4,rowH-8,2);ctx.fill();
+
+    // Slot label
+    ctx.fillStyle='#1a1a1a';
+    ctx.font='bold 15px "PingFang SC","Microsoft YaHei",sans-serif';
+    ctx.textAlign='left';
+    ctx.fillText(s.label+(isNow?' ▶':''),padX+18,y+26);
+
+    // Time
+    ctx.fillStyle='#999';
+    ctx.font='12px "PingFang SC","Microsoft YaHei",sans-serif';
+    ctx.fillText(slotTimeStr(s),padX+18,y+44);
+
+    // Count badge
+    const countTxt=ns.length+'/'+MAX;
+    ctx.font='bold 12px "PingFang SC","Microsoft YaHei",sans-serif';
+    ctx.fillStyle=isFull?'#c0392b':ns.length>=6?'#e67e22':'#27ae60';
+    ctx.textAlign='right';
+    ctx.fillText(countTxt,padX+colW-14,y+26);
+
+    // Members
+    if(ns.length){
+      ctx.textAlign='left';
+      let x=padX+80;
+      const maxShow=Math.min(ns.length,8);
+      for(let j=0;j<maxShow;j++){
+        const n=ns[j];
+        const isHost=host&&host.name===n;
+        const tw=ctx.measureText(n).width+20;
+        // Badge bg
+        ctx.fillStyle=isHost?(host.custom?'#fff3e0':'#fde8e8'):'#edf2fb';
+        roundRect(ctx,x,y+34,tw+4,22,5);ctx.fill();
+        ctx.fillStyle=isHost?(host.custom?'#e67e22':'#c0392b'):'#2c5fbd';
+        ctx.font=(isHost?'bold ':'')+'12px "PingFang SC","Microsoft YaHei",sans-serif';
+        ctx.fillText((isHost?'👑 ':'')+n,x+4,y+49);
+        x+=tw+10;
+        if(x>padX+colW-60){
+          if(j<ns.length-1){ctx.fillStyle='#aaa';ctx.font='12px sans-serif';ctx.fillText('+'+(ns.length-j-1),x,y+49);}
+          break;
+        }
+      }
+    } else {
+      ctx.fillStyle='#ccc';
+      ctx.font='12px "PingFang SC","Microsoft YaHei",sans-serif';
+      ctx.textAlign='left';
+      ctx.fillText('（空档）',padX+80,y+49);
+    }
+  });
+
+  // Footer
+  const fy=headerH+slots.length*rowH+10;
+  ctx.fillStyle='#bbb';
+  ctx.font='11px "PingFang SC","Microsoft YaHei",sans-serif';
+  ctx.textAlign='center';
+  ctx.fillText('排挡小神兽 · '+date,W/2,fy+24);
+
+  // Download
+  canvas.toBlob(blob=>{
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download='排挡表_'+date.replace(/\//g,'-')+'.png';
+    a.click();
+    toast('🖼 排挡图已保存！');
+  },'image/png');
+}
+
+function roundRect(ctx,x,y,w,h,r){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);ctx.arcTo(x+w,y,x+w,y+r,r);
+  ctx.lineTo(x+w,y+h-r);ctx.arcTo(x+w,y+h,x+w-r,y+h,r);
+  ctx.lineTo(x+r,y+h);ctx.arcTo(x,y+h,x,y+h-r,r);
+  ctx.lineTo(x,y+r);ctx.arcTo(x,y,x+r,y,r);
+  ctx.closePath();
 }
 async function resetAll(){
   if(!isAdmin){toast('需要管理员权限');return;}
@@ -2965,7 +3083,7 @@ async function initFanView(){
     const rows2=await res.json(),r=rows2[0].data;
     members=r.members||[];bookings=r.bookings||{};memberTasks=r.memberTasks||{};fans=r.fans||[];
     if(r.slotConfig&&r.slotConfig.length) rebuildSlots(r.slotConfig);
-    roomName=r.roomName||'听风点唱';
+    roomName=r.roomName||'排挡小神兽';
     document.getElementById('fan-pub-title').textContent='🎵 '+roomName+' · 本周档位';
     document.getElementById('fan-pub-week').textContent=weekLabel(CURRENT_WEEK);
     setSync('ok');
@@ -2976,7 +3094,7 @@ async function initFanView(){
     if(owSel) owSel.innerHTML=members.map(m=>`<option value="${esc(m)}">${esc(m)}</option>`).join('');
     // Update footer with room name
     const footer=document.getElementById('fan-pub-footer');
-    if(footer) footer.textContent=(roomName||'听风点唱')+' · 粉丝专区';
+    if(footer) footer.textContent=(roomName||'排挡小神兽')+' · 粉丝专区';
     // Render all 4 sections
     fanPubRender('');
     renderFanPubRank();
