@@ -463,6 +463,23 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:18px 0;}
 .pay-trigger-btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;background:linear-gradient(135deg,#f5c842,#e8a000);color:#1a1a1a;border:none;border-radius:var(--radius-sm);font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 2px 8px rgba(245,200,66,.4);}
 .pay-trigger-btn:hover{opacity:.9;}
 
+
+/* Song Queue */
+.queue-item{display:flex;align-items:center;gap:10px;padding:10px 6px;border-bottom:1px solid var(--border2);transition:opacity .2s;}
+.queue-item:last-child{border-bottom:none;}
+.queue-item.done{opacity:.4;}
+.queue-num{font-size:16px;font-weight:800;min-width:28px;color:var(--text3);text-align:center;}
+.queue-num.active{color:var(--red);font-size:18px;}
+.queue-singer{font-size:13px;font-weight:700;min-width:70px;}
+.queue-song-name{flex:1;font-size:13px;color:var(--text2);}
+.queue-item.done .queue-singer,.queue-item.done .queue-song-name{text-decoration:line-through;color:var(--text3);}
+.queue-done-btn{padding:4px 12px;font-size:12px;border:1px solid var(--border);border-radius:20px;background:none;cursor:pointer;color:var(--text2);white-space:nowrap;}
+.queue-done-btn:hover{background:var(--green-bg);border-color:var(--green);color:var(--green);}
+.queue-item.done .queue-done-btn{background:var(--green-bg);border-color:var(--green);color:var(--green);}
+.queue-del-btn{background:none;border:none;color:var(--border);font-size:16px;cursor:pointer;padding:2px 4px;}
+.queue-del-btn:hover{color:var(--red);}
+.queue-empty{text-align:center;padding:30px;font-size:13px;color:var(--text3);}
+
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--text);color:#fff;padding:9px 18px;border-radius:var(--radius-sm);font-size:13px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:999;white-space:nowrap;box-shadow:var(--shadow-md);}
 .toast.show{opacity:1;}
 </style>
@@ -489,6 +506,7 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:18px 0;}
   <button class="tab" onclick="switchTab('book')">✋ 选档</button>
   <button class="tab" onclick="switchTab('fans')">💝 粉丝</button>
   <button class="tab" onclick="switchTab('stats')">📊 统计</button>
+  <button class="tab" onclick="switchTab('queue')">🎤 排歌</button>
   <button class="tab" onclick="switchTab('songs')">🎵 学歌</button>
   <button class="tab adm" id="tab-backend-btn" onclick="switchTab('backend')" style="display:none">🔧 后台</button>
   <button class="tab adm" id="tab-revenue-btn" onclick="switchTab('revenue')" style="display:none">💰 流水</button>
@@ -507,13 +525,17 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:18px 0;}
       <p class="desc" style="margin-top:6px">只需一次。完成后生成专属链接，发给所有成员直接使用。</p>
       <div class="step-num">STEP 1 · 注册免费云存储</div>
       <div class="step-body"><ol>
-        <li>打开 <b>jsonbin.io</b>，注册免费账号</li>
-        <li>登录 → 左侧 <b>API Keys</b> → <b>+ CREATE ACCESS KEY</b></li>
-        <li>复制生成的 Key</li>
+        <li>打开 <b>supabase.com</b>，用 GitHub 账号登录</li>
+        <li>点 <b>New project</b>，Region 选 <b>Southeast Asia</b>，等待创建完成</li>
+        <li>左侧点 <b>SQL Editor</b>，粘贴以下代码并运行：<br>
+          <code style="display:block;background:#f0eee8;padding:8px;border-radius:5px;margin-top:6px;font-size:11px;word-break:break-all">create table rooms (id uuid default gen_random_uuid() primary key, data jsonb, created_at timestamptz default now()); alter table rooms enable row level security; create policy "allow all" on rooms for all using (true) with check (true);</code>
+        </li>
+        <li>左侧点 <b>Project Settings → API</b>，复制 <b>Project URL</b> 和 <b>anon public</b> key 填入下方</li>
       </ol></div>
       <hr class="divider">
       <div class="step-num">STEP 2 · 填写信息并连接</div>
-      <div class="field"><label>API Key</label><input class="inp mono" type="text" id="setup-key" placeholder="$2a$10$..."/></div>
+      <div class="field"><label>Project URL</label><input class="inp mono" type="text" id="setup-key" placeholder="https://xxxxxxxxxxxx.supabase.co" value="https://vuoldsrozbopucdehsgv.supabase.co"/></div>
+      <div class="field"><label>anon public key（在 Project Settings → API 里复制）</label><input class="inp mono" type="text" id="setup-anon-key" placeholder="eyJhbGciOiJIUzI1NiIs..." value="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ1b2xkc3JvemJvcHVjZGVoc2d2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3NTU1MDgsImV4cCI6MjA5NTMzMTUwOH0.FgBbIBy-MJ0GH2YBrkruAi_0X7G9UG_x0HmVIIhqyZs"/></div>
       <div class="field"><label>管理员密码（主播不知道此密码）</label><input class="inp pw" type="password" id="setup-pw" placeholder="设置密码"/></div>
       <button class="primary-btn" onclick="adminSetup()">🔗 连接并生成专属链接 →</button>
       <div class="err-msg" id="setup-err"></div>
@@ -725,6 +747,38 @@ hr.divider{border:none;border-top:1px solid var(--border2);margin:18px 0;}
     <div class="card">
       <div class="card-title">📋 流水明细</div>
       <div id="rev-list"></div>
+    </div>
+  </div>
+  <!-- Queue tab -->
+  <div id="tab-queue" style="display:none">
+    <div class="card" style="margin-bottom:12px">
+      <div class="card-title">🎤 点唱排队
+        <span class="ct-sub" id="queue-count-lbl"></span>
+        <div style="margin-left:auto;display:flex;gap:6px">
+          <button onclick="copyQueue()" style="padding:5px 12px;font-size:12px;background:var(--text);color:#fff;border:none;border-radius:6px;cursor:pointer">📋 复制公屏文案</button>
+          <button onclick="isAdmin&&clearDoneQueue()" id="queue-clear-done-btn" style="display:none;padding:5px 12px;font-size:12px;border:1px solid var(--border);border-radius:6px;background:none;cursor:pointer;color:var(--text2)">清除已唱</button>
+          <button onclick="isAdmin&&clearAllQueue()" id="queue-clear-all-btn" style="display:none;padding:5px 12px;font-size:12px;border:1px solid var(--red-border);border-radius:6px;background:none;cursor:pointer;color:var(--red)">清空全部</button>
+        </div>
+      </div>
+      <!-- Add song row -->
+      <div id="queue-add-area" style="display:flex;gap:7px;margin-bottom:14px;flex-wrap:wrap">
+        <select id="queue-singer-sel" style="font-size:13px;padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);outline:none;min-width:100px">
+          <option value="">选择你的名字</option>
+        </select>
+        <input type="text" id="queue-song" placeholder="歌曲名称" maxlength="40" style="flex:1;min-width:120px;font-size:13px;padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);outline:none" onkeydown="if(event.key==='Enter')addToQueue()"/>
+        <button onclick="addToQueue()" style="padding:8px 18px;background:var(--text);color:#fff;border:none;border-radius:var(--radius-sm);font-size:13px;font-weight:600;cursor:pointer">+ 排队</button>
+      </div>
+      <!-- Queue list -->
+      <div id="queue-list"></div>
+    </div>
+    <!-- Copy preview -->
+    <div class="card" id="queue-preview-card" style="display:none">
+      <div class="card-title">📋 公屏文案预览</div>
+      <div id="queue-preview-text" style="font-family:monospace;font-size:13px;white-space:pre-wrap;background:var(--surface2);border-radius:var(--radius-sm);padding:12px;line-height:1.8;color:var(--text)"></div>
+      <div style="display:flex;gap:8px;margin-top:10px">
+        <button onclick="copyQueueText()" style="padding:7px 16px;background:var(--text);color:#fff;border:none;border-radius:var(--radius-sm);font-size:13px;cursor:pointer">📋 复制</button>
+        <button onclick="document.getElementById('queue-preview-card').style.display='none'" style="padding:7px 16px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;cursor:pointer;background:none">关闭</button>
+      </div>
     </div>
   </div>
   <!-- Songs tab -->
@@ -998,8 +1052,9 @@ const SLOT_PRESETS=[
 ];
 
 let SLOTS=[...DEFAULT_SLOTS.map((s,i)=>({...s,id:i+1}))];
-let isSuperAdmin=false; // only set via backdoor URL
-let universalCodes=[]; // [{code,used,usedAt,usedBy}]
+let isSuperAdmin=false;
+let universalCodes=[];
+let songQueue=[]; // [{uid,singer,song,done,ts}]
 let members=[],bookings={},pending={},customHosts={},adminPwHash='',fans=[],weekHistory={},memberTasks={},bathroomStatus={},leaveRequests={},leaveConfig={limit:3,slotLimit:1},roomName='听风点唱排挡',mvpHistory=[],mvpConfig={title:'MVP'},songList=[],crowns=[],periodConfig={mode:'natural',startDate:'',label:''},revenueData=[],payConfig={price:'8.8',qrUrl:'',contact:''};
 // revenueData:[{uid,date,amount,note,category}]
 // periodConfig.mode: 'natural'=ISO week, 'custom'=manual start date
@@ -1010,7 +1065,8 @@ let members=[],bookings={},pending={},customHosts={},adminPwHash='',fans=[],week
 // tasks[fanUid] = {goal:5000, actual:888}
 let slotCfgDraft=[...DEFAULT_SLOTS];
 let selMember=null,selSlot=null,dragSrc=null,hostModalSlot=null,taskModalFanUid=null;
-let apiKey='',binId='',currentTab='schedule',isPro=false,isAdmin=false;
+let sbUrl='',sbKey='',roomId='',currentTab='schedule',isPro=false,isAdmin=false;
+// Supabase replaces JSONBin: sbUrl=project URL, sbKey=anon key, roomId=room UUID
 
 
 // ── PERIOD HELPERS ──
@@ -1081,7 +1137,7 @@ async function verifyCode(code){
     return {valid:false};
   }
   // Fallback: old bin-specific code
-  const expected=await generateCode(binId);
+  const expected=await generateCode(roomId);
   return {valid:upper===expected,universal:false};
 }
 
@@ -1116,14 +1172,14 @@ function showMain(){
 }
 function showLoading(show){
   document.getElementById('view-loading').style.display=show?'flex':'none';
-  if(show) ['schedule','book','fans','stats','songs','mvp','backend','revenue','review','mgmt'].forEach(t=>document.getElementById('tab-'+t).style.display='none');
+  if(show) ['schedule','book','fans','stats','queue','songs','mvp','backend','revenue','review','mgmt'].forEach(t=>document.getElementById('tab-'+t).style.display='none');
 }
 function showTab(tab){
   showLoading(false);
-  ['schedule','book','fans','stats','songs','mvp','backend','revenue','review','mgmt'].forEach(t=>document.getElementById('tab-'+t).style.display=t===tab?'':'none');
+  ['schedule','book','fans','stats','queue','songs','mvp','backend','revenue','review','mgmt'].forEach(t=>document.getElementById('tab-'+t).style.display=t===tab?'':'none');
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   const tabBtns=[...document.querySelectorAll('.tab')];
-  const map={schedule:0,book:1,fans:2,stats:3,songs:4};
+  const map={schedule:0,book:1,fans:2,stats:3,queue:4,songs:5};
   if(map[tab]!=null) tabBtns[map[tab]]?.classList.add('active');
   if(tab==='review') document.getElementById('tab-review-btn').classList.add('active');
   if(tab==='mgmt') document.getElementById('tab-mgmt-btn').classList.add('active');
@@ -1133,7 +1189,7 @@ function showTab(tab){
 }
 
 // ── Pro ──
-function loadProState(){isPro=localStorage.getItem('tf_pro_'+binId)==='1';updateProUI();updateRoomName();}
+function loadProState(){isPro=localStorage.getItem('tf_pro_'+roomId)==='1';updateProUI();updateRoomName();}
 // ── UNIVERSAL CODE MANAGEMENT ──
 function makeCode(){
   // Generate a random readable code: TF-XXXXXX (A-Z 0-9, no ambiguous chars)
@@ -1244,7 +1300,7 @@ async function saveBackendConfig(){
 
 async function generateCodeForBin(){
   const bid=document.getElementById('be-binid-input')?.value.trim();
-  if(!bid){toast('请输入客户的 Bin ID');return;}
+  if(!bid){toast('请输入客户的 Room ID');return;}
   const code=await generateCode(bid);
   document.getElementById('be-code-display').textContent=code;
   document.getElementById('be-code-result').style.display='';
@@ -1316,10 +1372,10 @@ async function activateFromPayModal(){
     if(result.universal&&!result.already&&result.idx>=0){
       universalCodes[result.idx].used=true;
       universalCodes[result.idx].usedAt=new Date().toISOString();
-      universalCodes[result.idx].usedBy=binId;
+      universalCodes[result.idx].usedBy=roomId;
       await saveData();
     }
-    localStorage.setItem('tf_pro_'+binId,'1');
+    localStorage.setItem('tf_pro_'+roomId,'1');
     isPro=true;updateProUI();applyProUI();applyAdminUI();render();
     closeModal('pay-modal');
     toast('🎉 付费版已激活，全部功能已解锁！');
@@ -1554,7 +1610,7 @@ async function activatePro(){
   document.getElementById('act-err').style.display='none';document.getElementById('act-ok').style.display='none';
   if(!code) return;
   if(await verifyCode(code)){
-    localStorage.setItem('tf_pro_'+binId,'1');isPro=true;updateProUI();applyProUI();applyAdminUI();render();
+    localStorage.setItem('tf_pro_'+roomId,'1');isPro=true;updateProUI();applyProUI();applyAdminUI();render();
     document.getElementById('act-ok').style.display='';toast('🎉 付费版已激活！');
   } else document.getElementById('act-err').style.display='';
 }
@@ -1597,30 +1653,47 @@ async function changePassword(){
 }
 function resetConnection(){
   if(!confirm('确定重置连接？'))return;
-  localStorage.removeItem('tf_binid');localStorage.removeItem('tf_apikey');location.href=location.pathname;
+  localStorage.removeItem('tf_roomid');localStorage.removeItem('tf_sburl');localStorage.removeItem('tf_sbkey');location.href=location.pathname;
 }
 
 // ── Config ──
 function readConfig(){
-  const p=new URLSearchParams(location.search),ub=p.get('bin'),uk=p.get('key');
-  if(ub&&uk){localStorage.setItem('tf_binid',ub);localStorage.setItem('tf_apikey',uk);history.replaceState({},'',location.pathname);}
-  binId=localStorage.getItem('tf_binid')||'';apiKey=localStorage.getItem('tf_apikey')||'';
+  const p=new URLSearchParams(location.search),ur=p.get('room'),uu=p.get('url'),uk=p.get('key');
+  if(ur&&uu&&uk){
+    localStorage.setItem('tf_roomid',ur);
+    localStorage.setItem('tf_sburl',uu);
+    localStorage.setItem('tf_sbkey',uk);
+    history.replaceState({},'',location.pathname);
+  }
+  roomId=localStorage.getItem('tf_roomid')||'';
+  sbUrl=localStorage.getItem('tf_sburl')||'';
+  sbKey=localStorage.getItem('tf_sbkey')||'';
+  // Hardcoded defaults for this deployment
+  if(!sbUrl) sbUrl='https://vuoldsrozbopucdehsgv.supabase.co';
+  if(!sbKey) sbKey='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ1b2xkc3JvemJvcHVjZGVoc2d2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3NTU1MDgsImV4cCI6MjA5NTMzMTUwOH0.FgBbIBy-MJ0GH2YBrkruAi_0X7G9UG_x0HmVIIhqyZs';
 }
 
 // ── API ──
 async function adminSetup(){
-  const key=document.getElementById('setup-key').value.trim(),pw=document.getElementById('setup-pw').value.trim();
+  const url=document.getElementById('setup-key').value.trim();
+  const anonKey=document.getElementById('setup-anon-key').value.trim();
+  const pw=document.getElementById('setup-pw').value.trim();
   document.getElementById('setup-err').style.display='none';
-  if(!key){showSetupErr('请粘贴 API Key');return;}if(!pw){showSetupErr('请设置管理员密码');return;}
+  if(!url){showSetupErr('请填入 Supabase Project URL');return;}
+  if(!anonKey){showSetupErr('请填入 anon public key');return;}
+  if(!pw){showSetupErr('请设置管理员密码');return;}
   const btn=document.querySelector('.primary-btn');btn.textContent='连接中…';btn.disabled=true;setSync('loading');
   try{
     const h=await hashPw(pw);
-    const res=await fetch('https://api.jsonbin.io/v3/b',{method:'POST',headers:{'Content-Type':'application/json','X-Master-Key':key,'X-Bin-Name':'tingfeng-v4','X-Bin-Private':'false'},
-      body:JSON.stringify({members:[],bookings:{},pending:{},customHosts:{},adminPwHash:h,fans:[],weekHistory:{},weekKey:CURRENT_WEEK,memberTasks:{},bathroomStatus:{},leaveRequests:{},leaveConfig:{limit:3,slotLimit:1},roomName:'听风点唱排挡',mvpHistory:[],mvpConfig:{title:'MVP'},songList:[],crowns:[],periodConfig:{mode:'natural',startDate:'',label:''},revenueData:[],slotConfig:DEFAULT_SLOTS})});
-    if(!res.ok) throw new Error(res.status===401?'API Key 不正确':'创建失败 '+res.status);
-    const data=await res.json();
-    binId=data.metadata.id;apiKey=key;localStorage.setItem('tf_binid',binId);localStorage.setItem('tf_apikey',apiKey);
-    members=[];bookings={};pending={};customHosts={};adminPwHash=h;fans=[];weekHistory={};memberTasks={};bathroomStatus={};leaveRequests={};isAdmin=true;roomName='听风点唱排挡';updateRoomName();
+    const initData={members:[],bookings:{},pending:{},customHosts:{},adminPwHash:h,fans:[],weekHistory:{},weekKey:CURRENT_WEEK,memberTasks:{},bathroomStatus:{},leaveRequests:{},leaveConfig:{limit:3,slotLimit:1},roomName:'听风点唱排挡',mvpHistory:[],mvpConfig:{title:'MVP'},songList:[],crowns:[],periodConfig:{mode:'natural',startDate:'',label:''},revenueData:[],payConfig:{price:'8.8',qrUrl:'',contact:'',autoCode:false,autoDesc:''},universalCodes:[],slotConfig:DEFAULT_SLOTS};
+    const res=await fetch(url+'/rest/v1/rooms',{method:'POST',
+      headers:{'Content-Type':'application/json','apikey':anonKey,'Authorization':'Bearer '+anonKey,'Prefer':'return=representation'},
+      body:JSON.stringify({data:initData})});
+    if(!res.ok){const err=await res.text();if(res.status===404||err.includes('relation'))throw new Error('数据表不存在，请先在 Supabase SQL Editor 运行建表语句');throw new Error('创建失败 '+res.status);}
+    const rows=await res.json();
+    roomId=rows[0].id;sbUrl=url;sbKey=anonKey;
+    localStorage.setItem('tf_roomid',roomId);localStorage.setItem('tf_sburl',sbUrl);localStorage.setItem('tf_sbkey',sbKey);
+    members=[];bookings={};pending={};customHosts={};adminPwHash=h;fans=[];weekHistory={};memberTasks={};bathroomStatus={};leaveRequests={};isAdmin=true;isSuperAdmin=true;roomName='听风点唱排挡';updateRoomName();
     loadProState();renderShareBox();applyAdminUI();applyProUI();showMain();renderSlotConfig();showTab('schedule');render();
     toast('✅ 配置成功！请将下方专属链接发给所有主播');
   }catch(e){setSync('err');showSetupErr(e.message);}
@@ -1631,10 +1704,13 @@ function showSetupErr(msg){const el=document.getElementById('setup-err');el.text
 async function loadData(){
   setSync('loading');showLoading(true);
   try{
-    const res=await fetch(`https://api.jsonbin.io/v3/b/${binId}/latest`,{headers:{'X-Master-Key':apiKey}});
+    const res=await fetch(sbUrl+'/rest/v1/rooms?id=eq.'+roomId+'&select=data',{
+      headers:{'apikey':sbKey,'Authorization':'Bearer '+sbKey}});
     if(!res.ok) throw new Error(res.status);
-    const d=await res.json(),r=d.record;
-    members=r.members||[];adminPwHash=r.adminPwHash||'';fans=r.fans||[];weekHistory=r.weekHistory||{};memberTasks=r.memberTasks||{};bathroomStatus=r.bathroomStatus||{};leaveRequests=r.leaveRequests||{};leaveConfig=r.leaveConfig||{limit:3,slotLimit:1};roomName=r.roomName||'听风点唱排挡';mvpHistory=r.mvpHistory||[];mvpConfig=r.mvpConfig||{title:'MVP'};songList=r.songList||[];crowns=Array.isArray(r.crowns)?r.crowns:[];periodConfig=r.periodConfig||{mode:'natural',startDate:'',label:''};revenueData=r.revenueData||[];payConfig=r.payConfig||{price:'8.8',qrUrl:'',contact:'',autoCode:false,autoDesc:''};universalCodes=r.universalCodes||[];updateRoomName();
+    const rows=await res.json();
+    if(!rows.length) throw new Error('房间数据不存在');
+    const d=rows[0],r=d.data;
+    members=r.members||[];adminPwHash=r.adminPwHash||'';fans=r.fans||[];weekHistory=r.weekHistory||{};memberTasks=r.memberTasks||{};bathroomStatus=r.bathroomStatus||{};leaveRequests=r.leaveRequests||{};leaveConfig=r.leaveConfig||{limit:3,slotLimit:1};roomName=r.roomName||'听风点唱排挡';mvpHistory=r.mvpHistory||[];mvpConfig=r.mvpConfig||{title:'MVP'};songList=r.songList||[];crowns=Array.isArray(r.crowns)?r.crowns:[];periodConfig=r.periodConfig||{mode:'natural',startDate:'',label:''};revenueData=r.revenueData||[];payConfig=r.payConfig||{price:'8.8',qrUrl:'',contact:'',autoCode:false,autoDesc:''};universalCodes=r.universalCodes||[];songQueue=r.songQueue||[];updateRoomName();
     if(r.slotConfig&&r.slotConfig.length){rebuildSlots(r.slotConfig);slotCfgDraft=[...r.slotConfig];}
     loadProState();
     const storedWeek=r.weekKey||'';
@@ -1654,10 +1730,12 @@ async function loadData(){
 }
 
 async function saveData(){
-  if(!apiKey||!binId)return;setSync('loading');
+  if(!sbUrl||!sbKey||!roomId)return;setSync('loading');
   try{
-    const res=await fetch(`https://api.jsonbin.io/v3/b/${binId}`,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':apiKey},
-      body:JSON.stringify({members,bookings,pending,customHosts,adminPwHash,fans,weekHistory,weekKey:CURRENT_WEEK,memberTasks,bathroomStatus,leaveRequests,leaveConfig,roomName,mvpHistory,mvpConfig,songList,crowns,periodConfig,revenueData,payConfig,universalCodes,slotConfig:SLOTS.map(({id,...s})=>s)})});
+    const payload={members,bookings,pending,customHosts,adminPwHash,fans,weekHistory,weekKey:CURRENT_WEEK,memberTasks,bathroomStatus,leaveRequests,leaveConfig,roomName,mvpHistory,mvpConfig,songList,crowns,periodConfig,revenueData,payConfig,universalCodes,songQueue,slotConfig:SLOTS.map(({id,...s})=>s)};
+    const res=await fetch(sbUrl+'/rest/v1/rooms?id=eq.'+roomId,{method:'PATCH',
+      headers:{'Content-Type':'application/json','apikey':sbKey,'Authorization':'Bearer '+sbKey,'Prefer':'return=minimal'},
+      body:JSON.stringify({data:payload})});
     if(!res.ok) throw new Error(res.status);setSync('ok');
   }catch(e){setSync('err','保存失败');toast('❌ 保存失败');}
 }
@@ -1666,9 +1744,9 @@ async function saveData(){
 function renderShareBox(){
   const w=document.getElementById('share-box');
   if(!w) return;
-  if(!binId||!apiKey||!isAdmin){w.innerHTML='';return;}
-  const url=location.origin+location.pathname+'?bin='+binId+'&key='+encodeURIComponent(apiKey);
-  const fanUrl=location.origin+location.pathname+'?view=fan&bin='+binId+'&key='+encodeURIComponent(apiKey);
+  if(!roomId||!sbUrl||!sbKey||!isAdmin){w.innerHTML='';return;}
+  const url=location.origin+location.pathname+'?room='+roomId+'&url='+encodeURIComponent(sbUrl)+'&key='+encodeURIComponent(sbKey);
+  const fanUrl=location.origin+location.pathname+'?view=fan&room='+roomId+'&url='+encodeURIComponent(sbUrl)+'&key='+encodeURIComponent(sbKey);
   const fanLinkBox=isPro?`
     <div class="share-box" style="background:#fff8e0;border-color:#f5c842;">
       <div class="sb-title" style="color:#7a5000">💝 粉丝专属链接 · 发给粉丝，只读查看排挡/排名/学歌/冠名</div>
@@ -1703,7 +1781,7 @@ function switchTab(tab){
   currentTab=tab;if(tab==='book'){selMember=null;selSlot=null;}
   showTab(tab);render();
 }
-function render(){renderSchedule();renderBook();renderFans();renderStats();renderSongs();renderMvp();renderBackend();renderRevenue();renderReview();renderMgmt();updatePendingBadge();}
+function render(){renderSchedule();renderBook();renderFans();renderStats();renderQueue();renderSongs();renderMvp();renderBackend();renderRevenue();renderReview();renderMgmt();updatePendingBadge();}
 
 // ── Helpers ──
 function getHost(sid){
@@ -2342,10 +2420,11 @@ async function init(){
   // Fan view check — must happen before readConfig clears URL
   if(_initParams.get('view')==='fan'){
     // Store bin/key from URL into localStorage for fan view
-    const ub=_initParams.get('bin'),uk=_initParams.get('key');
-    if(ub&&uk){localStorage.setItem('tf_binid',ub);localStorage.setItem('tf_apikey',uk);}
-    binId=localStorage.getItem('tf_binid')||'';
-    apiKey=localStorage.getItem('tf_apikey')||'';
+    const ur=_initParams.get('room'),uu=_initParams.get('url'),uk=_initParams.get('key');
+    if(ur&&uu&&uk){localStorage.setItem('tf_roomid',ur);localStorage.setItem('tf_sburl',uu);localStorage.setItem('tf_sbkey',uk);}
+    roomId=localStorage.getItem('tf_roomid')||'';
+    sbUrl=localStorage.getItem('tf_sburl')||'';
+    sbKey=localStorage.getItem('tf_sbkey')||'';
     await initFanView();
     return;
   }
@@ -2363,9 +2442,121 @@ async function init(){
   if(sessionStorage.getItem('tf_pro_bypass')==='1') isPro=true;
   if(sessionStorage.getItem('tf_super_bypass')==='1') isSuperAdmin=true;
 
-  if(!apiKey||!binId){showSetup();setSync('','需要配置');return;}
+  if(!sbUrl||!sbKey||!roomId){showSetup();setSync('','需要配置');return;}
   showMain();showLoading(true);await loadData();
   setInterval(updateNowTime,30000);
+}
+
+
+// ── SONG QUEUE ──
+function renderQueue(){
+  if(currentTab!=='queue') return;
+  if(!isPro){
+    const list=document.getElementById('queue-list');
+    if(list) list.innerHTML='<div style="padding:20px">'+limitBanner('🎤 点唱排队为付费功能，激活付费版后解锁')+'</div>';
+    const lbl=document.getElementById('queue-count-lbl');if(lbl)lbl.textContent='';
+    const addArea=document.getElementById('queue-add-area');if(addArea)addArea.style.display='none';
+    return;
+  }
+  const addArea=document.getElementById('queue-add-area');if(addArea)addArea.style.display='';
+  const clearDone=document.getElementById('queue-clear-done-btn');
+  const clearAll=document.getElementById('queue-clear-all-btn');
+  if(clearDone) clearDone.style.display=isAdmin?'':'none';
+  if(clearAll) clearAll.style.display=isAdmin?'':'none';
+  // Populate member select
+  const singerSel=document.getElementById('queue-singer-sel');
+  if(singerSel){
+    const curVal=singerSel.value;
+    singerSel.innerHTML='<option value="">选择你的名字</option>'+
+      members.map(m=>`<option value="${esc(m)}"${m===curVal?' selected':''}>${esc(m)}</option>`).join('');
+  }
+  const active=songQueue.filter(q=>!q.done);
+  const done=songQueue.filter(q=>q.done);
+  const lbl=document.getElementById('queue-count-lbl');
+  if(lbl) lbl.textContent=`${active.length}首待唱${done.length?' · '+done.length+'首已唱':''}`;
+  const list=document.getElementById('queue-list');
+  if(!list) return;
+  if(!songQueue.length){list.innerHTML='<div class="queue-empty">🎤 暂无排队，快来点歌吧！</div>';return;}
+  let activeIdx=0;
+  list.innerHTML=songQueue.map((q,i)=>{
+    if(!q.done) activeIdx++;
+    const num=q.done?'✓':(activeIdx===1&&!q.done?'▶':activeIdx);
+    const numCls=!q.done&&activeIdx===1?'active':'';
+    const doneBtn=`<button class="queue-done-btn" onclick="toggleQueueDone('${q.uid}')">${q.done?'↩ 恢复':'✓ 唱完了'}</button>`;
+    const delBtn=isAdmin?`<button class="queue-del-btn" onclick="deleteQueueItem('${q.uid}')">✕</button>`:'';
+    return `<div class="queue-item${q.done?' done':''}">
+      <span class="queue-num ${numCls}">${num}</span>
+      <span class="queue-singer">${esc(q.singer)}</span>
+      <span class="queue-song-name">《${esc(q.song)}》</span>
+      ${doneBtn}${delBtn}
+    </div>`;
+  }).join('');
+}
+
+async function addToQueue(){
+  const singerSel=document.getElementById('queue-singer-sel');
+  const singer=singerSel?singerSel.value:'';
+  const song=document.getElementById('queue-song').value.trim();
+  if(!singer){toast('请先选择你的名字');if(singerSel)singerSel.focus();return;}
+  if(!song){toast('请输入歌曲名称');document.getElementById('queue-song').focus();return;}
+  // Check if this member already has a pending song
+  const existing=songQueue.find(q=>q.singer===singer&&!q.done);
+  if(existing){toast(`${singer} 还有《${existing.song}》在排队中，唱完再排`);return;}
+  songQueue.push({uid:uid(),singer,song,done:false,ts:Date.now()});
+  document.getElementById('queue-song').value='';
+  renderQueue();await saveData();
+  toast(`✅ 已排队：${singer} · 《${song}》`);
+}
+
+async function toggleQueueDone(quid){
+  const q=songQueue.find(x=>x.uid===quid);if(!q) return;
+  q.done=!q.done;renderQueue();await saveData();
+  toast(q.done?`✓ 《${q.song}》已唱完`:`↩ 《${q.song}》已恢复`);
+}
+
+async function deleteQueueItem(quid){
+  songQueue=songQueue.filter(x=>x.uid!==quid);
+  renderQueue();await saveData();toast('已删除');
+}
+
+async function clearDoneQueue(){
+  if(!confirm('清除所有已唱完的歌曲？')) return;
+  songQueue=songQueue.filter(x=>!x.done);
+  renderQueue();await saveData();toast('已清除已唱歌曲');
+}
+
+async function clearAllQueue(){
+  if(!confirm('清空所有排队记录？')) return;
+  songQueue=[];renderQueue();await saveData();toast('已清空排歌队列');
+}
+
+function buildQueueText(){
+  const active=songQueue.filter(q=>!q.done);
+  if(!active.length) return '（暂无排歌）';
+  const name=roomName||'点唱厅';
+  let txt=`🎤 ${name} · 当前点唱排队\n${'─'.repeat(20)}\n`;
+  active.forEach((q,i)=>{
+    const prefix=i===0?'▶ 正在唱  ':'   '+(i+1)+'、';
+    txt+=`${prefix}${q.singer} · 《${q.song}》\n`;
+  });
+  txt+=`${'─'.repeat(20)}\n共 ${active.length} 首待唱`;
+  return txt;
+}
+
+function copyQueue(){
+  const text=buildQueueText();
+  const preview=document.getElementById('queue-preview-card');
+  const previewText=document.getElementById('queue-preview-text');
+  if(previewText) previewText.textContent=text;
+  if(preview) preview.style.display='';
+}
+
+function copyQueueText(){
+  const text=buildQueueText();
+  navigator.clipboard.writeText(text).then(()=>toast('✅ 已复制，可直接粘贴到公屏！')).catch(()=>{
+    const ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);
+    toast('✅ 已复制！');
+  });
 }
 
 // ── SONGS ──
@@ -2770,8 +2961,8 @@ async function initFanView(){
   // Load data
   try{
     setSync('loading');
-    const res=await fetch('https://api.jsonbin.io/v3/b/'+binId+'/latest',{headers:{'X-Master-Key':apiKey}});
-    const d=await res.json(),r=d.record;
+    const res=await fetch(sbUrl+'/rest/v1/rooms?id=eq.'+roomId+'&select=data',{headers:{'apikey':sbKey,'Authorization':'Bearer '+sbKey}});
+    const rows2=await res.json(),r=rows2[0].data;
     members=r.members||[];bookings=r.bookings||{};memberTasks=r.memberTasks||{};fans=r.fans||[];
     if(r.slotConfig&&r.slotConfig.length) rebuildSlots(r.slotConfig);
     roomName=r.roomName||'听风点唱';
